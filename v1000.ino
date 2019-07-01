@@ -1,0 +1,895 @@
+/*- вывести число>32767 нельзя
+  сложить 10 дист /10
+  таймер для остальных
+  брэйк
+*/
+#define REMOTEXY_MODE__SOFTSERIAL
+#include <SoftwareSerial.h>
+
+#include <RemoteXY.h>
+
+// настройки соединения
+#define REMOTEXY_SERIAL_RX 2
+#define REMOTEXY_SERIAL_TX 3
+#define REMOTEXY_SERIAL_SPEED 9600
+#include <Ultrasonic.h>
+long unsigned  t; //время в секунндах
+int x = 1,ii=50;
+float A, B, C, D, E, Z, m, aaa, aa, a,i = 1000.00 ;
+int b = 14 ;
+int  q = 0, w = 0, e = 0, r = 0, y = 0;
+
+Ultrasonic ultrasonic(12, 13);//12-trig
+int dist;
+Ultrasonic ultrasonic_1(9, 8);
+int dist_1;
+
+// определение режима соединения и подключение библиотеки RemoteXY
+#define REMOTEXY_MODE__SOFTSERIAL
+#include <SoftwareSerial.h>
+
+#include <RemoteXY.h>
+
+// настройки соединения
+#define REMOTEXY_SERIAL_RX 2
+#define REMOTEXY_SERIAL_TX 3
+#define REMOTEXY_SERIAL_SPEED 9600
+
+
+
+
+
+
+// конфигурация интерфейса
+#pragma pack(push, 1)
+uint8_t RemoteXY_CONF[] =
+{ 255, 18, 0, 137, 0, 200, 1, 8, 13, 4,
+  131, 1, -1, 12, 30, 9, 6, 192, 31, 49,
+  32, 67, 105, 114, 99, 108, 101, 0, 65, 7,
+  19, 41, 8, 8, 6, 67, 0, 79, 12, 32,
+  10, 0, 29, 26, 11, 67, 0, 79, 0, 37,
+  10, 0, 7, 26, 11, 67, 0, 79, 24, 36,
+  10, 0, 2, 26, 11, 67, 0, 79, 36, 35,
+  11, 0, 12, 26, 11, 67, 0, 79, 48, 32,
+  10, 0, 16, 26, 11, 67, 0, 28, 42, 34,
+  7, 6, 31, 26, 16, 131, 0, -1, 30, 30,
+  9, 8, 5, 16, 82, 101, 115, 116, 97, 114,
+  116, 0, 67, 0, 0, 41, 66, 7, 8, 31,
+  31, 22, 1, 0, 43, 18, 15, 15, 8, 1,
+  31, 82, 101, 115, 101, 116, 32, 97, 108, 108,
+  0, 1, 0, 18, 50, 12, 12, 6, 1, 31,
+  66, 114, 101, 97, 107, 0, 1, 2, 0, 49,
+  9, 9, 8, 7, 31, 86, 105, 111, 108, 101,
+  116, 0, 1, 2, 9, 49, 9, 9, 8, 28,
+  31, 71, 114, 97, 121, 0, 1, 2, 18, 49,
+  9, 9, 8, 2, 31, 79, 114, 97, 110, 103,
+  101, 0, 1, 2, 27, 49, 9, 9, 8, 12,
+  31, 71, 114, 101, 101, 110, 0, 1, 2, 36,
+  49, 9, 9, 8, 97, 24, 87, 104, 105, 116,
+  101, 0, 1, 1, 67, -1, 12, 12, 6, 7,
+  31, 86, 105, 111, 108, 101, 116, 0, 1, 1,
+  67, 11, 12, 12, 6, 29, 31, 32, 71, 114,
+  97, 121, 32, 0, 1, 1, 67, 23, 12, 12,
+  6, 2, 31, 79, 114, 97, 110, 103, 101, 0,
+  1, 1, 67, 35, 12, 12, 6, 135, 31, 71,
+  114, 101, 101, 110, 32, 0, 1, 1, 67, 47,
+  12, 12, 6, 97, 24, 87, 104, 105, 116, 101,
+  32, 0, 131, 0, -1, 21, 30, 9, 1, 5,
+  31, 51, 32, 67, 105, 114, 99, 108, 101, 115,
+  0, 1, 0, 18, 50, 12, 12, 1, 1, 31,
+  66, 114, 101, 97, 107, 0, 1, 1, 67, -1,
+  12, 12, 1, 7, 31, 86, 105, 111, 108, 101,
+  116, 0, 1, 1, 67, 11, 12, 12, 1, 29,
+  31, 32, 71, 114, 97, 121, 32, 0, 1, 1,
+  67, 23, 12, 12, 1, 2, 31, 79, 114, 97,
+  110, 103, 101, 0, 1, 1, 67, 35, 12, 12,
+  1, 135, 31, 71, 114, 101, 101, 110, 32, 0,
+  1, 1, 67, 47, 12, 12, 1, 111, 24, 87,
+  104, 105, 116, 101, 32, 0, 65, 7, 19, 41,
+  8, 8, 1, 67, 0, 28, 42, 34, 7, 1,
+  31, 26, 16, 67, 0, 33, 0, 31, 6, 6,
+  31, 26, 11, 67, 0, 33, 0, 31, 6, 1,
+  31, 26, 11
+};
+
+struct {
+
+  // input variable
+  uint8_t select_1; // =1 если кнопка нажата, иначе =0
+  uint8_t break_1; // =1 если кнопка нажата, иначе =0
+  uint8_t rst_1; // =1 если кнопка нажата, иначе =0
+  uint8_t rst_2; // =1 если кнопка нажата, иначе =0
+  uint8_t rst_3; // =1 если кнопка нажата, иначе =0
+  uint8_t rst_4; // =1 если кнопка нажата, иначе =0
+  uint8_t rst_5; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_1; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_2; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_3; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_4; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_5; // =1 если кнопка нажата, иначе =0
+  uint8_t break_2; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_13; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_23; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_33; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_43; // =1 если кнопка нажата, иначе =0
+  uint8_t team_now_53; // =1 если кнопка нажата, иначе =0
+
+  // output variable
+  uint8_t led_1_r; // =0..255 яркость красного цвета индикатора
+  uint8_t led_1_g; // =0..255 яркость зеленого цвета индикатора
+  uint8_t led_1_b; // =0..255 яркость синего цвета индикатора
+  char Gray_2[11];  // =строка UTF8 оканчивающаяся нулем
+  char Violet_2[11];  // =строка UTF8 оканчивающаяся нулем
+  char Orange_2[11];  // =строка UTF8 оканчивающаяся нулем
+  char Green_2[11];  // =строка UTF8 оканчивающаяся нулем
+  char White_2[11];  // =строка UTF8 оканчивающаяся нулем
+  char Timing[16];  // =строка UTF8 оканчивающаяся нулем
+  char rst_text[22];  // =строка UTF8 оканчивающаяся нулем
+  uint8_t led_2_r; // =0..255 яркость красного цвета индикатора
+  uint8_t led_2_g; // =0..255 яркость зеленого цвета индикатора
+  uint8_t led_2_b; // =0..255 яркость синего цвета индикатора
+  char Timing_3[16];  // =строка UTF8 оканчивающаяся нулем
+  char circle_1[11];  // =строка UTF8 оканчивающаяся нулем
+  char circle_3[11];  // =строка UTF8 оканчивающаяся нулем
+
+  // other variable
+  uint8_t connect_flag;  // =1 if wire connected, else =0
+
+} RemoteXY;
+#pragma pack(pop)
+
+/////////////////////////////////////////////
+//           END RemoteXY include          //
+/////////////////////////////////////////////
+
+
+
+void setup()
+{
+  RemoteXY_Init ();
+  // TODO you setup code
+  pinMode(13, OUTPUT);
+  pinMode(7, INPUT);
+  Serial.begin(9600);// TODO you setup code
+
+}
+
+
+
+int green() {
+  RemoteXY_Handler ();
+  RemoteXY.led_1_r = 46;
+  RemoteXY.led_1_g = 139;
+  RemoteXY.led_1_b = 87;
+  RemoteXY.led_2_r = 46;
+  RemoteXY.led_2_g = 139;
+  RemoteXY.led_2_b = 87;
+  RemoteXY_Handler ();
+}
+int gray() {
+  RemoteXY_Handler ();
+  RemoteXY.led_1_r = 105;
+  RemoteXY.led_1_g = 105;
+  RemoteXY.led_1_b = 105;
+  RemoteXY.led_2_r = 105;
+  RemoteXY.led_2_g = 105;
+  RemoteXY.led_2_b = 105;
+  RemoteXY_Handler ();
+}
+int violet() {
+  RemoteXY_Handler ();
+  RemoteXY.led_1_r = 106;
+  RemoteXY.led_1_g = 90;
+  RemoteXY.led_1_b = 205;
+  RemoteXY.led_2_r = 106;
+  RemoteXY.led_2_g = 90;
+  RemoteXY.led_2_b = 205;
+
+  RemoteXY_Handler ();
+}
+int orange() {
+  RemoteXY_Handler ();
+  RemoteXY.led_1_r = 255;
+  RemoteXY.led_1_g = 140;
+  RemoteXY.led_1_b = 0;
+  RemoteXY.led_2_r = 255;
+  RemoteXY.led_2_g = 140;
+  RemoteXY.led_2_b = 0;
+  RemoteXY_Handler ();
+}
+int white() {
+  RemoteXY_Handler ();
+  RemoteXY.led_1_r = 224;
+  RemoteXY.led_1_g = 255;
+  RemoteXY.led_1_b = 255;
+  RemoteXY.led_2_r = 224;
+  RemoteXY.led_2_g = 255;
+  RemoteXY.led_2_b = 255;
+  RemoteXY_Handler ();
+}
+int off() {
+  RemoteXY_Handler ();
+  RemoteXY.led_1_r = 0;
+  RemoteXY.led_1_g = 0;
+  RemoteXY.led_1_b = 0;
+  RemoteXY.led_2_r = 0;
+  RemoteXY.led_2_g = 0;
+  RemoteXY.led_2_b = 0;
+  RemoteXY_Handler ();
+}
+
+
+int AA() {
+  while (q < 1) {
+    violet();
+    RemoteXY_Handler ();
+    while (x < 1)
+    {
+      //dist = ultrasonic.distanceRead();
+      dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+       Serial.println(dist_1);
+      RemoteXY_Handler ();
+      strcpy (RemoteXY.Timing, "Ready");
+      if (RemoteXY.break_1 == 1) {
+        q = 3;   goto poop;
+      }
+
+      if (/*dist <= b ||*/ dist_1 < b) {
+
+        // RemoteXY_Handler ();
+        sprintf  (RemoteXY.Timing, "Waiting"); RemoteXY_Handler ();
+        t = millis();
+        delay(1000);
+        RemoteXY_Handler ();
+        while (x < 1) {Z = (millis() - t) / i;
+          if (RemoteXY.break_1 == 1)
+            goto poop;
+          RemoteXY_Handler ();
+          
+          Serial.println(Z);
+          dtostrf(Z, 0, 2, RemoteXY.Timing);
+
+          RemoteXY_Handler ();
+          //dist = ultrasonic.distanceRead();
+          dist_1 = ultrasonic_1.distanceRead();    
+Serial.println(dist_1);
+          if (/*dist <= b ||*/ dist_1 < b)
+          {
+            dtostrf(Z, 0, 2, RemoteXY.Violet_2);
+            off();
+poop:
+            q = 3;
+            x = 3;
+
+            RemoteXY_Handler ();
+          }
+        }
+      }
+    }
+  }
+}
+
+int AAA() {
+
+  while (q < 3) {
+    violet();
+    //dist = ultrasonic.distanceRead();
+    dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+    strcpy (RemoteXY.Timing_3, "Ready");
+    if (RemoteXY.break_2 == 1) {
+      q = 3;
+
+      goto poop;
+    }
+    if (/*dist <= b ||*/ dist_1 < b)
+    {
+      sprintf  (RemoteXY.Timing_3, "Waiting"); RemoteXY_Handler ();
+      t = millis();
+      delay(2000);
+      while (x < 3)
+      {
+        Z = (millis() - t) / i;
+        dtostrf(Z, 0, 2, RemoteXY.Timing_3);
+        //dtostrf(Z, 0, 2, RemoteXY.Timing);
+        RemoteXY_Handler ();
+        if (RemoteXY.break_2 == 1) {
+          //вывод sprintf  (RemoteXY.Violet_2, " "); RemoteXY_Handler ();
+          q = 3;
+          goto poop;
+        }
+        //dist = ultrasonic.distanceRead();
+        dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+        RemoteXY_Handler ();
+        if (/*dist <= b ||*/ dist_1 < b)
+        { A = Z;
+          delay(2000);
+          if (q == 2) {
+            aaa = A; if (m > aaa - aa) m = aaa - aa;
+          } RemoteXY_Handler ();
+          if (q == 1) {
+            aa  = A; if (m > aa - a) m = aa - a;
+          } RemoteXY_Handler ();
+          if (q == 0) {
+            a = A; m = A ;
+          }
+          RemoteXY_Handler ();
+
+          dtostrf(m, 0, 2, RemoteXY.Violet_2);
+          //itoa (m, RemoteXY.Violet_2, 10);
+          RemoteXY_Handler ();
+poop:
+          x++; q ++;
+          RemoteXY_Handler ();
+        }
+      } off(); a = 0; aa = 0; aaa = 0;
+    }
+  }
+}
+
+
+
+int BB() {
+  while (w < 1) {
+    gray();
+    RemoteXY_Handler ();
+    while (x < 1)
+    {
+      //dist = ultrasonic.distanceRead();
+      dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+      RemoteXY_Handler ();
+      strcpy (RemoteXY.Timing, "Ready");
+
+      if (RemoteXY.break_1 == 1) {
+        w = 3;   goto poop;
+      }
+      if (/*dist <= b ||*/ dist_1 < b) {
+
+        // RemoteXY_Handler ();
+        sprintf  (RemoteXY.Timing, "Waiting"); RemoteXY_Handler ();
+        t = millis();
+        delay(1000);
+        RemoteXY_Handler ();
+        while (x < 1) {
+          if (RemoteXY.break_1 == 1)
+            goto poop;
+          RemoteXY_Handler ();
+          Z =          (millis() - t) / i;
+          dtostrf(Z, 0, 2, RemoteXY.Timing);
+          RemoteXY_Handler ();
+          //dist = ultrasonic.distanceRead();
+          dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+
+          if (/*dist <= b ||*/ dist_1 < b)
+          {
+            dtostrf(Z, 0, 2, RemoteXY.Gray_2);
+            off();
+poop:
+            w = 3;
+            x = 3;
+
+            RemoteXY_Handler ();
+          }
+        }
+      }
+    }
+  }
+}
+
+
+int BBB() {
+
+  while (w < 3) {
+    gray ();
+    ////dist = ultrasonic.distanceRead();
+    dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+    strcpy (RemoteXY.Timing_3, "Ready");
+    if (RemoteXY.break_2 == 1) {
+      w = 3;   goto poop;
+    }
+    if (/*dist <= b ||*/ dist_1 < b)
+    {
+      sprintf  (RemoteXY.Timing_3, "Waiting"); RemoteXY_Handler ();
+      t = millis();
+      delay(2000);
+      while (x < 3)
+      {
+        Z = (millis() - t) / i  ;
+        dtostrf(Z, 0, 2, RemoteXY.Timing_3);
+        RemoteXY_Handler ();
+        if (RemoteXY.break_2 == 1) {
+          w = 3;
+          //вывод sprintf  (RemoteXY.Gray_2, " "); RemoteXY_Handler ();
+          goto poop;
+        }
+
+        ////dist = ultrasonic.distanceRead();
+        dist_1 = ultrasonic_1.distanceRead();    delay(50);
+        RemoteXY_Handler ();
+
+        if (/*dist <= b ||*/ dist_1 < b)
+        { B = Z;
+          delay(2000);
+          if (w == 2) {
+            aaa = B; if (m > aaa - aa) m = aaa - aa;
+          }
+          if (w == 1) {
+            aa  = B; if (m > aa - a) m = aa - a;
+          }
+          if (w == 0) {
+            a = B; m = B ;
+          }
+
+          Serial.print("m=");
+          Serial.println(m);
+          Serial.print("a=");
+          Serial.println(a);
+          Serial.print("aa=");
+          Serial.println(aa);
+          Serial.print("aaa=");
+          Serial.println(aaa);
+
+          dtostrf(m, 0, 2, RemoteXY.Gray_2);
+          RemoteXY_Handler ();
+poop:
+          x++; w ++;
+          RemoteXY_Handler ();
+        }
+      } off(); a = 0; aa = 0; aaa = 0;
+    }
+  }
+}
+
+
+
+
+int CC() {
+  while (e < 1) {
+    orange();
+    RemoteXY_Handler ();
+    while (x < 1)
+    {
+      //dist = ultrasonic.distanceRead();
+      dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+      RemoteXY_Handler ();
+      strcpy (RemoteXY.Timing, "Ready");
+      if (RemoteXY.break_1 == 1) {
+        e = 3;   goto poop;
+      }
+
+
+      if (/*dist <= b ||*/ dist_1 < b) {
+
+        // RemoteXY_Handler ();
+        sprintf  (RemoteXY.Timing, "Waiting"); RemoteXY_Handler ();
+        t = millis();
+        delay(1000);
+        RemoteXY_Handler ();
+        while (x < 1) {
+          if (RemoteXY.break_1 == 1)
+            goto poop;
+          RemoteXY_Handler ();
+          Z =          (millis() - t) / i  ;
+          dtostrf(Z, 0, 2, RemoteXY.Timing);
+          RemoteXY_Handler ();
+          //dist = ultrasonic.distanceRead();
+          dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+
+          if (/*dist <= b ||*/ dist_1 < b)
+          {
+            dtostrf(Z, 0, 2, RemoteXY.Orange_2);
+            off();
+poop:
+            e = 3;
+            x = 3;
+
+            RemoteXY_Handler ();
+          }
+        }
+      }
+    }
+  }
+}
+
+
+int CCC() {
+
+  while (e < 3) {
+    orange ();
+    //dist = ultrasonic.distanceRead();
+    dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+    strcpy (RemoteXY.Timing_3, "Ready");
+    if (RemoteXY.break_2 == 1) {
+      e = 3;   goto poop;
+    }
+    if (/*dist <= b ||*/ dist_1 < b)
+    {
+      sprintf  (RemoteXY.Timing_3, "Waiting"); RemoteXY_Handler ();
+      t = millis();
+      delay(2000);
+      while (x < 3)
+      {
+        Z =          (millis() - t) / i;
+        dtostrf(Z, 0, 2, RemoteXY.Timing_3);
+        RemoteXY_Handler ();
+        if (RemoteXY.break_2 == 1) {
+          //вывод sprintf  (RemoteXY.Orange_2, " "); RemoteXY_Handler ();
+          e = 3;   goto poop;
+        }
+
+        //dist = ultrasonic.distanceRead();
+        dist_1 = ultrasonic_1.distanceRead();    delay(50);
+        RemoteXY_Handler ();
+
+        if (/*dist <= b ||*/ dist_1 < b)
+        { C = Z   ;
+          delay(2000);
+          if (e == 2) {
+            aaa = C; if (m > aaa - aa) m = aaa - aa;
+          }
+          if (e == 1) {
+            aa  = C; if (m > aa - a) m = aa - a;
+          }
+          if (e == 0) {
+            m = C ; a = C;
+          }
+          dtostrf(m, 0, 2, RemoteXY.Orange_2);
+          RemoteXY_Handler ();
+
+poop: x++; e ++;
+          RemoteXY_Handler ();
+        }
+      } off(); a = 0; aa = 0; aaa = 0;
+    }
+  }
+}
+
+
+
+
+
+
+int DD() {
+  while (r < 1) {
+    green();
+    RemoteXY_Handler ();
+    while (x < 1)
+    {
+      //dist = ultrasonic.distanceRead();
+      dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+      RemoteXY_Handler ();
+      strcpy (RemoteXY.Timing, "Ready");
+      if (RemoteXY.break_1 == 1) {
+        r = 3;   goto poop;
+      }
+
+
+      if (/*dist <= b ||*/ dist_1 < b) {
+
+        // RemoteXY_Handler ();
+        sprintf  (RemoteXY.Timing, "Waiting"); RemoteXY_Handler ();
+        t = millis();
+        delay(1000);
+        RemoteXY_Handler ();
+        while (x < 1) {
+          if (RemoteXY.break_1 == 1)
+            goto poop;
+          RemoteXY_Handler ();
+          Z =          (millis() - t) / i;
+          dtostrf(Z, 0, 2, RemoteXY.Timing);
+          RemoteXY_Handler ();
+          //dist = ultrasonic.distanceRead();
+          dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+
+          if (/*dist <= b ||*/ dist_1 < b)
+          {
+            dtostrf(Z, 0, 2, RemoteXY.Green_2);
+            off();
+poop:
+            r = 3;
+            x = 3;
+
+            RemoteXY_Handler ();
+          }
+        }
+      }
+    }
+  }
+}
+
+
+int DDD() {
+
+  while (r < 3) {
+    green ();
+    //dist = ultrasonic.distanceRead();
+    dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+    strcpy (RemoteXY.Timing_3, "Ready");
+    if (RemoteXY.break_2 == 1) {
+      q = 3;   goto poop;
+    }
+    if (/*dist <= b ||*/ dist_1 < b)
+    {
+      sprintf  (RemoteXY.Timing_3, "Waiting"); RemoteXY_Handler ();
+      t = millis();
+      delay(2000);
+      while (x < 3)
+      {
+        Z =          (millis() - t) / i;
+        dtostrf(Z, 0, 2, RemoteXY.Timing_3);
+        RemoteXY_Handler ();
+        if (RemoteXY.break_2 == 1) {
+          r = 3;
+          //вывод sprintf  (RemoteXY.Green_2, " "); RemoteXY_Handler ();
+          goto poop;
+        }
+
+        //dist = ultrasonic.distanceRead();
+        dist_1 = ultrasonic_1.distanceRead();    delay(50);
+        RemoteXY_Handler ();
+
+        if (/*dist <= b ||*/ dist_1 < b)
+        { D = Z   ;
+          delay(2000);
+          if (r == 2) {
+            aaa = D; if (m > aaa - aa) m = aaa - aa;
+          }
+          if (r == 1) {
+            aa  = D; if (m > aa - a) m = aa - a;
+          }
+          if (r == 0) {
+            a = D; m = D ;
+          }
+          dtostrf(m, 0, 2, RemoteXY.Green_2);
+          RemoteXY_Handler ();
+poop:
+          x++; r ++;
+          RemoteXY_Handler ();
+        }
+      } off(); a = 0; aa = 0; aaa = 0;
+    }
+  }
+}
+
+int EE() {
+  while (y < 1) {
+    white();
+    RemoteXY_Handler ();
+    while (x < 1)
+    {
+      //dist = ultrasonic.distanceRead();
+      dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+      RemoteXY_Handler ();
+      strcpy (RemoteXY.Timing, "Ready");
+      if (RemoteXY.break_1 == 1) {
+        y = 3;   goto poop;
+      }
+
+
+      if (/*dist <= b ||*/ dist_1 < b) {
+
+        // RemoteXY_Handler ();
+        sprintf  (RemoteXY.Timing, "Waiting"); RemoteXY_Handler ();
+        t = millis();
+        delay(1000);
+        RemoteXY_Handler ();
+        while (x < 1) {
+          if (RemoteXY.break_1 == 1)
+            goto poop;
+          RemoteXY_Handler ();
+          Z =          (millis() - t) / i;
+          dtostrf(Z, 0, 2, RemoteXY.Timing);
+          RemoteXY_Handler ();
+          //dist = ultrasonic.distanceRead();
+          dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+
+          if (/*dist <= b ||*/ dist_1 < b) {
+
+            dtostrf(Z, 0, 2, RemoteXY.White_2);
+            off();
+poop:
+            y = 3;
+            x = 3;
+
+            RemoteXY_Handler ();
+          }
+        }
+      }
+    }
+  }
+}
+
+
+int EEE() {
+
+  while (y < 3) {
+    white ();
+    //dist = ultrasonic.distanceRead();
+    dist_1 = ultrasonic_1.distanceRead();    delay(ii);
+    strcpy (RemoteXY.Timing_3, "Ready");
+    if (RemoteXY.break_2 == 1) {
+      y = 3;   goto poop;
+    }
+    if (/*dist <= b ||*/ dist_1 < b)
+    {
+      sprintf  (RemoteXY.Timing_3, "Waiting"); RemoteXY_Handler ();
+      t = millis();
+      delay(2000);
+      while (x < 3)
+      {
+        Z =          (millis() - t) / i;
+        dtostrf(Z, 0, 2, RemoteXY.Timing_3);
+        RemoteXY_Handler ();
+        if (RemoteXY.break_2 == 1) {
+          //вывод sprintf  (RemoteXY.Violet_2, " "); RemoteXY_Handler ();
+          y = 3;
+          goto poop;
+        }
+
+        //dist = ultrasonic.distanceRead();
+        dist_1 = ultrasonic_1.distanceRead();    delay(50);
+        RemoteXY_Handler ();
+
+        if (/*dist <= b ||*/ dist_1 < b)
+        { E = Z   ;
+          delay(2000);
+          if (y == 2) {
+            aaa = E; if (m > aaa - aa) m = aaa - aa;
+          }
+          if (y == 1) {
+            aa  = E; if (m > aa - a) m = aa - a;
+          }
+          if (y == 0) {
+            m = E; a = E ;
+          }
+          dtostrf(m, 0, 2, RemoteXY.White_2);
+          RemoteXY_Handler ();
+poop:
+          x++; y ++;
+          RemoteXY_Handler ();
+        }
+      } off(); a = 0; aa = 0; aaa = 0;
+    }
+  }
+}
+void loop()
+{ RemoteXY_Handler ();
+  sprintf (RemoteXY.rst_text, "Reset team");
+  dist_1 = ultrasonic_1.distanceRead();
+  off();Serial.println(dist_1);delay(60);
+  x = 0;
+  RemoteXY_Handler ();
+  sprintf (RemoteXY.Timing_3, "Select team");
+  sprintf (RemoteXY.Timing, "Select team");
+  RemoteXY_Handler ();
+  if (RemoteXY.team_now_1 == 1) {
+    RemoteXY_Handler ();
+    AA();
+    if (RemoteXY.break_1 == 1) {
+      q = 0; off;
+    }
+
+  }
+  if (RemoteXY.team_now_2 == 1) {
+
+    RemoteXY_Handler ();
+    BB();
+    if (RemoteXY.break_1 == 1) {
+      w = 0; off;
+    }
+  }
+  if (RemoteXY.team_now_3 == 1) {
+    RemoteXY_Handler ();
+
+
+    CC();
+
+
+    if (RemoteXY.break_1 == 1) {
+      e = 0; off;
+    }
+  }
+  if (RemoteXY.team_now_4 == 1) {
+    RemoteXY_Handler ();
+    DD();
+    if (RemoteXY.break_1 == 1) {
+      r = 0; off;
+    }
+
+  }
+  if (RemoteXY.team_now_5 == 1) {
+    RemoteXY_Handler ();
+
+
+    EE();
+    if (RemoteXY.break_1 == 1) {
+      y = 0; off;
+
+    }
+  }
+
+
+
+
+
+  if (RemoteXY.team_now_13 == 1) {
+    AAA();
+    if (RemoteXY.break_2 == 1) {
+      q = 0; off;
+
+    }
+  }
+  if (RemoteXY.team_now_23 == 1) {
+    BBB();
+    if (RemoteXY.break_2 == 1) {
+      w = 0; off;
+    }
+  }
+  if (RemoteXY.team_now_33 == 1) {
+    CCC();
+    if (RemoteXY.break_2 == 1) {
+      e = 0; off;
+    }
+  }
+  if (RemoteXY.team_now_43 == 1) {
+    DDD();
+    if (RemoteXY.break_2 == 1) {
+      r = 0; off;
+    }
+  }
+  if (RemoteXY.team_now_53 == 1) {
+    EEE();
+    if (RemoteXY.break_2 == 1) {
+      w = 0; off;
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  if (RemoteXY.select_1 == 1) {
+    RemoteXY_Handler ();
+    sprintf (RemoteXY.Orange_2, "  ");
+    sprintf (RemoteXY.White_2, "  ");
+    sprintf (RemoteXY.Green_2, "  ");
+    sprintf (RemoteXY.Gray_2, "  ");    RemoteXY_Handler ();
+    sprintf (RemoteXY.Violet_2, "  ");
+    q = 0; w = 0; e = 0; r = 0; y = 0; x = 0;    RemoteXY_Handler ();
+  }
+
+  if (RemoteXY.rst_1 == 1) {
+    sprintf (RemoteXY.Violet_2, " ");
+    RemoteXY_Handler ();
+    q = 0;
+  }
+  if (RemoteXY.rst_2 == 1) {
+    w = 0;
+    sprintf (RemoteXY.Gray_2, " ");
+    RemoteXY_Handler ();
+  }
+  if (RemoteXY.rst_3 == 1) {
+    sprintf (RemoteXY.Orange_2, " ");
+    RemoteXY_Handler ();
+    e = 0;
+
+  }
+  if (RemoteXY.rst_4 == 1) {
+    sprintf (RemoteXY.Green_2, " ");
+    RemoteXY_Handler ();
+    r = 0;
+  }
+  if (RemoteXY.rst_5 == 1) {
+    sprintf (RemoteXY.White_2, "  ");
+    RemoteXY_Handler ();
+    y = 0;
+  }
+}
